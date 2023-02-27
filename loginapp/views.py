@@ -1,45 +1,32 @@
-from django.contrib.auth import authenticate
-from rest_framework import viewsets, permissions, generics
+from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.views import status
-
-from .models import User
+from rest_framework import status
+from django.contrib.auth import authenticate
+from django.contrib.auth.models import User
 from .serializers import UserSerializer
-
-class LoginView(generics.CreateAPIView):
-    """
-    POST auth/login/
-    """
-    permission_classes = (permissions.AllowAny,)
-
-    queryset = User.objects.all()
-
-    def post(self, request, *args, **kwargs):
-        username = request.data.get("username", "")
-        password = request.data.get("password", "")
-        user = authenticate(request, username=username, password=password)
-        if user is not None:
-            return Response(
-                data={
-                    "message": "Login successful."
-                },
-                status=status.HTTP_200_OK
-            )
-        else:
-            return Response(
-                data={
-                    "message": "Login failed."
-                },
-                status=status.HTTP_401_UNAUTHORIZED
-            )
-
-class RegisterUsersViewSet(viewsets.ModelViewSet):
-    """
-    POST auth/register/
-    """
-    permission_classes = (permissions.AllowAny,)
-
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-
+# class LoginAPIView(APIView):
+#     def post(self, request):
+#         serializer = LoginSerializer(data=request.data)
+#         serializer.is_valid(raise_exception=True)
+#         user = authenticate(email=serializer.validated_data['email'], password=serializer.validated_data['password'])
+#         if user:
+            # Login successful
+        #     return Response({'message': 'Login successful'}, status=status.HTTP_200_OK)
+        # else:
+        #     # Invalid email or password
+        #     return Response({'message': 'Invalid email or password'}, status=status.HTTP_401_UNAUTHORIZED)
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from .serializers import UserSerializer
+from .models import CustomUser
+class RegistrationAPIView(APIView):
+    def post(self, request):
+        serializer = UserSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
+    def get(self,request):
+        queryset=CustomUser.objects.all()
+        serializer=UserSerializer(queryset,many=True)
+        return Response(serializer.data)
